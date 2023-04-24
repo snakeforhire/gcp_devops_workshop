@@ -23,7 +23,7 @@ jobs:
   build-publish:
     needs: test
     runs-on: ubuntu-latest
-    environment: staging
+    # environment: staging
     name: build docker image and push it to the GAR
     steps:
       - uses: actions/checkout@v3
