@@ -50,7 +50,7 @@ jobs:
     needs: build-publish
     runs-on: ubuntu-latest
     # environment: staging
-    name: deploy the previously built image to Cloud Run
+    name: deploy image to Cloud Run
     steps:
       - uses: actions/checkout@v3
         with:
