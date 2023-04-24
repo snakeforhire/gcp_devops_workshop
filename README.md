@@ -1,5 +1,4 @@
 # GCP DevOps Workshop
-
 Welcome to the `gcp_devops_workshop` !
 
 This repo contains the code, organized in steps, of the DevOps workshop I usually present when talking about DevOps and the GCP.
