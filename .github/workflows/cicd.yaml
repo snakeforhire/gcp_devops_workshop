@@ -43,8 +43,8 @@ jobs:
           registry: ${{ secrets.GAR_REGISTRY }}
           username: _json_key
           password: ${{ secrets.CLOUD_RUN_DEPLOYER_SA_KEY }}
-      - run: docker build -t ${{ secrets.GAR_REPO }}/w:${{ github.sha }} .
-      - run: docker push ${{ secrets.GAR_REPO }}/w:${{ github.sha }}
+      - run: docker build -t ${{ secrets.GAR_REPO }}/workshop:${{ github.sha }} .
+      - run: docker push ${{ secrets.GAR_REPO }}/workshop:${{ github.sha }}
 
   deploy-to-cloud-run:
     needs: build-publish
@@ -64,8 +64,8 @@ jobs:
       - id: "deploy"
         uses: "google-github-actions/deploy-cloudrun@v1"
         with:
-          service: "w"
-          image: "${{ secrets.GAR_REPO }}/w:${{ github.sha }}"
+          service: "gcworkshop"
+          image: "${{ secrets.GAR_REPO }}/workshop:${{ github.sha }}"
           env_vars: |
             NODE_ENV=production
           flags: "--port=8080"
