@@ -7,7 +7,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    name: app' test
+    name: app' tests
     steps:
       - uses: actions/checkout@v3
         with:
@@ -24,7 +24,7 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     environment: staging
-    name: build staging and push it to GAR
+    name: build staging image and push it to GAR
     steps:
       - uses: actions/checkout@v3
         with:
@@ -46,11 +46,11 @@ jobs:
       - run: docker build -t ${{ secrets.GAR_REPO }}/gcworkshop:${{ github.sha }} .
       - run: docker push ${{ secrets.GAR_REPO }}/gcworkshop:${{ github.sha }}
 
-  deploy-to-cloud-run-prod:  
+  deploy-to-cloud-run:
     needs: build-publish
     runs-on: ubuntu-latest
     environment: staging
-    name: deploy the staging image to Cloud Run
+    name: deploy the staging image to GCR
     steps:
       - uses: actions/checkout@v3
         with:
@@ -61,7 +61,7 @@ jobs:
         with:
           credentials_json: "${{ secrets.CLOUD_RUN_DEPLOYER_SA_KEY }}"
       # Deploy to Cloud Run
-      - id: "deploy-staging"
+      - id: "deploy"
         uses: "google-github-actions/deploy-cloudrun@v1"
         with:
           service: "gcworkshop"
@@ -70,5 +70,5 @@ jobs:
             NODE_ENV=staging
           flags: "--port=8080"
           region: "${{ secrets.CLOUD_RUN_REGION }}"
-      - name: "deploy staging output"
+      - name: "deploy output"
         run: 'curl "${{ steps.deploy.outputs.url }}"'
