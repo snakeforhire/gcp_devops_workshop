@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
+          ref: ${{ github.event.push.head.ref }}
       - name: automated tests
         uses: actions/setup-node@v3
         with:
@@ -24,11 +24,11 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     environment: staging
-    name: build docker image and push it to the GAR
+    name: build staging image and push it to GAR
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
+          ref: ${{ github.event.push.head.ref }}
       - name: build code
         uses: actions/setup-node@v3
         with:
@@ -43,8 +43,8 @@ jobs:
           registry: ${{ secrets.GAR_REGISTRY }}
           username: _json_key
           password: ${{ secrets.CLOUD_RUN_DEPLOYER_SA_KEY }}
-      - run: docker build -t ${{ secrets.GAR_REPO }}/devops_workshop_api:${{ github.sha }} .
-      - run: docker push ${{ secrets.GAR_REPO }}/devops_workshop_api:${{ github.sha }}
+      - run: docker build -t ${{ secrets.GAR_REPO }}/gcworkshop:${{ github.sha }} .
+      - run: docker push ${{ secrets.GAR_REPO }}/gcworkshop:${{ github.sha }}
 
   deploy-to-cloud-run:
     needs: build-publish
@@ -64,8 +64,8 @@ jobs:
       - id: "deploy"
         uses: "google-github-actions/deploy-cloudrun@v1"
         with:
-          service: "devops_workshop_api"
-          image: "${{ secrets.GAR_REPO }}/devops_workshop_api:${{ github.sha }}"
+          service: "gcworkshop"
+          image: "${{ secrets.GAR_REPO }}/gcworkshop:${{ github.sha }}"
           env_vars: |
             NODE_ENV=staging
           flags: "--port=8080"
