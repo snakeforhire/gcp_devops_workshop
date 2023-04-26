@@ -28,3 +28,6 @@
 ## research
 
 - Secret Manager best practices
+
+
+- this is a frickin test of a pullreq !
