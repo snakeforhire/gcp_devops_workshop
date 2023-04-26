@@ -24,7 +24,7 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     environment: production
-    name: build docker image and push it to the GAR
+    name: build prod image and push it to GAR
     steps:
       - uses: actions/checkout@v3
         with:
@@ -43,14 +43,14 @@ jobs:
           registry: ${{ secrets.GAR_REGISTRY }}
           username: _json_key
           password: ${{ secrets.CLOUD_RUN_DEPLOYER_SA_KEY }}
-      - run: docker build -t ${{ secrets.GAR_REPO }}/devops_workshop_api:${{ github.sha }} .
-      - run: docker push ${{ secrets.GAR_REPO }}/devops_workshop_api:${{ github.sha }}
+      - run: docker build -t ${{ secrets.GAR_REPO }}/gcpwkshp-prod:${{ github.sha }} .
+      - run: docker push ${{ secrets.GAR_REPO }}/gcpwkshp-prod:${{ github.sha }}
 
   deploy-to-cloud-run:
     needs: build-publish
     runs-on: ubuntu-latest
     environment: production
-    name: deploy the production image to GCR
+    name: deploy the prod image to GCR
     steps:
       - uses: actions/checkout@v3
         with:
@@ -64,11 +64,11 @@ jobs:
       - id: "deploy"
         uses: "google-github-actions/deploy-cloudrun@v1"
         with:
-          service: "devops_workshop_api"
-          image: "${{ secrets.GAR_REPO }}/devops_workshop_api:${{ github.sha }}"
+          service: "gcpwkshp-prod"
+          image: "${{ secrets.GAR_REPO }}/gcpwkshp-prod:${{ github.sha }}"
           env_vars: |
             NODE_ENV=production
           flags: "--port=8080"
           region: "${{ secrets.CLOUD_RUN_REGION }}"
-      - name: "deploy output"
+      - name: "deploy production output"
         run: 'curl "${{ steps.deploy.outputs.url }}"'
