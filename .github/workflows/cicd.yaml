@@ -1,4 +1,4 @@
-name: CIPRD
+name: CICD
 
 on:
   pull_request:
