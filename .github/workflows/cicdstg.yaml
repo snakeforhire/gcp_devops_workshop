@@ -1,7 +1,7 @@
 name: CI
 
 on:
-  pull_request:
+  push:
     branches: ["master"]
 
 jobs:
@@ -23,7 +23,7 @@ jobs:
   build-publish:
     needs: test
     runs-on: ubuntu-latest
-    environment: production
+    environment: staging
     name: build docker image and push it to the GAR
     steps:
       - uses: actions/checkout@v3
@@ -49,8 +49,8 @@ jobs:
   deploy-to-cloud-run:
     needs: build-publish
     runs-on: ubuntu-latest
-    environment: production
-    name: deploy the production image to GCR
+    environment: staging
+    name: deploy the staging image to GCR
     steps:
       - uses: actions/checkout@v3
         with:
@@ -67,7 +67,7 @@ jobs:
           service: "devops_workshop_api"
           image: "${{ secrets.GAR_REPO }}/devops_workshop_api:${{ github.sha }}"
           env_vars: |
-            NODE_ENV=production
+            NODE_ENV=staging
           flags: "--port=8080"
           region: "${{ secrets.CLOUD_RUN_REGION }}"
       - name: "deploy output"
