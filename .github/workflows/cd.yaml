@@ -65,7 +65,7 @@ jobs:
         uses: "google-github-actions/deploy-cloudrun@v1"
         with:
           service: "gcpwkshp-prod"
-          image: "${{ secrets.GAR_REPO }}/gcwkshp-prod:${{ github.sha }}"
+          image: "${{ secrets.GAR_REPO }}/gcpwkshp-prod:${{ github.sha }}"
           env_vars: |
             NODE_ENV=production
           flags: "--port=8080"
