@@ -1,7 +1,7 @@
 name: CI
 
 on:
-  push:
+  pull_request:
     branches: ["master"]
 
 jobs:
@@ -23,7 +23,7 @@ jobs:
   build-publish:
     needs: test
     runs-on: ubuntu-latest
-    environment: production
+    environment: staging
     name: build docker image and push it to the GAR
     steps:
       - uses: actions/checkout@v3
@@ -46,28 +46,28 @@ jobs:
       - run: docker build -t ${{ secrets.GAR_REPO }}/workshop:${{ github.sha }} .
       - run: docker push ${{ secrets.GAR_REPO }}/workshop:${{ github.sha }}
 
-  deploy-to-cloud-run-prod:  
+  deploy-to-cloud-run:
     needs: build-publish
     runs-on: ubuntu-latest
-    environment: production
-    name: deploy the master image to Cloud Run
+    environment: staging
+    name: deploy staging to Cloud Run
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: ${{ github.event.push.head.ref }}
+          ref: ${{ github.event.pull_request.head.ref }}
       # Setup gcloud CLI
       - id: "auth"
         uses: "google-github-actions/auth@v1"
         with:
           credentials_json: "${{ secrets.CLOUD_RUN_DEPLOYER_SA_KEY }}"
       # Deploy to Cloud Run
-      - id: "deploy-prod"
+      - id: "deploy"
         uses: "google-github-actions/deploy-cloudrun@v1"
         with:
-          service: "gcworkshop-prod"
+          service: "gcworkshop"
           image: "${{ secrets.GAR_REPO }}/workshop:${{ github.sha }}"
           env_vars: |
-            NODE_ENV=production
+            NODE_ENV=staging
           flags: "--port=8080"
           region: "${{ secrets.CLOUD_RUN_REGION }}"
       - name: "deploy output"
