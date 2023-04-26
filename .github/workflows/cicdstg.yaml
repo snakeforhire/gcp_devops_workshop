@@ -1,7 +1,7 @@
-name: CD
+name: CI
 
 on:
-  pull_request:
+  push:
     branches: ["master"]
 
 jobs:
@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
+          ref: ${{ github.event.push.head.ref }}
       - name: automated tests
         uses: actions/setup-node@v3
         with:
@@ -23,12 +23,12 @@ jobs:
   build-publish:
     needs: test
     runs-on: ubuntu-latest
-    environment: production
-    name: build docker image and push it to the GAR
+    environment: staging
+    name: build staging image and push it to GAR
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
+          ref: ${{ github.event.push.head.ref }}
       - name: build code
         uses: actions/setup-node@v3
         with:
@@ -43,18 +43,18 @@ jobs:
           registry: ${{ secrets.GAR_REGISTRY }}
           username: _json_key
           password: ${{ secrets.CLOUD_RUN_DEPLOYER_SA_KEY }}
-      - run: docker build -t ${{ secrets.GAR_REPO }}/gcwkshp-prod:${{ github.sha }} .
-      - run: docker push ${{ secrets.GAR_REPO }}/gcwkshp-prod:${{ github.sha }}
+      - run: docker build -t ${{ secrets.GAR_REPO }}/gcworkshop:${{ github.sha }} .
+      - run: docker push ${{ secrets.GAR_REPO }}/gcworkshop:${{ github.sha }}
 
   deploy-to-cloud-run:
     needs: build-publish
     runs-on: ubuntu-latest
-    environment: production
-    name: deploy production to Cloud Run
+    environment: staging
+    name: deploy the staging image to GCR
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
+          ref: ${{ github.event.push.head.ref }}
       # Setup gcloud CLI
       - id: "auth"
         uses: "google-github-actions/auth@v1"
@@ -65,10 +65,10 @@ jobs:
         uses: "google-github-actions/deploy-cloudrun@v1"
         with:
           service: "gcworkshop"
-          image: "${{ secrets.GAR_REPO }}/gcwkshp-prod:${{ github.sha }}"
+          image: "${{ secrets.GAR_REPO }}/gcworkshop:${{ github.sha }}"
           env_vars: |
-            NODE_ENV=production
+            NODE_ENV=staging
           flags: "--port=8080"
           region: "${{ secrets.CLOUD_RUN_REGION }}"
-      - name: "deploy production output"
+      - name: "deploy output"
         run: 'curl "${{ steps.deploy.outputs.url }}"'
