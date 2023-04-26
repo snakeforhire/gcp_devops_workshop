@@ -7,7 +7,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    name: app' tests
+    name: app' test
     steps:
       - uses: actions/checkout@v3
         with:
